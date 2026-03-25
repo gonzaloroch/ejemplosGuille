@@ -1,0 +1,235 @@
+{
+  "openapi": "3.0.0",
+  "info": {
+    "title": "API de Cursos",
+    "version": "1.0.0",
+    "description": "API REST para crear y gestionar cursos usando Node.js, Express y MySQL",
+    "contact": {
+      "name": "Soporte API",
+      "email": "support@ejemplo.com"
+    },
+    "license": {
+      "name": "MIT",
+      "url": "https://opensource.org/licenses/MIT"
+    }
+  },
+  "servers": [
+    {
+      "url": "http://localhost:3000",
+      "description": "Servidor Local de Desarrollo"
+    },
+    {
+      "url": "http://localhost:3001",
+      "description": "Servidor de Pruebas"
+    }
+  ],
+  "paths": {
+    "/api/cursos": {
+      "post": {
+        "summary": "Crear un nuevo curso",
+        "description": "Crea un nuevo curso en la base de datos y retorna el ID asignado",
+        "tags": [
+          "Cursos"
+        ],
+        "operationId": "crearCurso",
+        "requestBody": {
+          "description": "Datos del curso a crear",
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "required": [
+                  "nombreCurso"
+                ],
+                "properties": {
+                  "nombreCurso": {
+                    "type": "string",
+                    "description": "Nombre del curso",
+                    "minLength": 1,
+                    "maxLength": 255,
+                    "example": "Python Avanzado"
+                  }
+                }
+              },
+              "examples": {
+                "ejemplo1": {
+                  "summary": "Crear un curso de programación",
+                  "value": {
+                    "nombreCurso": "Python Avanzado"
+                  }
+                },
+                "ejemplo2": {
+                  "summary": "Crear un curso de diseño",
+                  "value": {
+                    "nombreCurso": "Diseño UX Moderno"
+                  }
+                },
+                "ejemplo3": {
+                  "summary": "Crear un curso de desarrollo web",
+                  "value": {
+                    "nombreCurso": "Full Stack Web Development"
+                  }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "Curso creado exitosamente",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "success": {
+                      "type": "boolean",
+                      "example": true
+                    },
+                    "message": {
+                      "type": "string",
+                      "example": "Curso creado exitosamente"
+                    },
+                    "idCurso": {
+                      "type": "integer",
+                      "format": "int64",
+                      "description": "ID único del curso creado (auto-generado)",
+                      "example": 1
+                    },
+                    "nombreCurso": {
+                      "type": "string",
+                      "example": "Python Avanzado"
+                    }
+                  }
+                },
+                "examples": {
+                  "exitoso": {
+                    "summary": "Respuesta exitosa",
+                    "value": {
+                      "success": true,
+                      "message": "Curso creado exitosamente",
+                      "idCurso": 1,
+                      "nombreCurso": "Python Avanzado"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Error de validación - nombre del curso requerido",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "success": {
+                      "type": "boolean",
+                      "example": false
+                    },
+                    "message": {
+                      "type": "string",
+                      "example": "El nombre del curso es requerido"
+                    }
+                  }
+                },
+                "examples": {
+                  "error_validacion": {
+                    "summary": "Campo requerido faltante",
+                    "value": {
+                      "success": false,
+                      "message": "El nombre del curso es requerido"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "Error interno del servidor",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "success": {
+                      "type": "boolean",
+                      "example": false
+                    },
+                    "message": {
+                      "type": "string",
+                      "example": "Error al crear el curso"
+                    },
+                    "error": {
+                      "type": "string",
+                      "example": "Connection refused"
+                    }
+                  }
+                },
+                "examples": {
+                  "error_servidor": {
+                    "summary": "Error de conexión a BD",
+                    "value": {
+                      "success": false,
+                      "message": "Error al crear el curso",
+                      "error": "Connection refused"
+                    }
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    }
+  },
+  "components": {
+    "schemas": {
+      "Curso": {
+        "type": "object",
+        "required": [
+          "nombreCurso"
+        ],
+        "properties": {
+          "idCurso": {
+            "type": "integer",
+            "format": "int64",
+            "description": "ID único del curso (generado automáticamente)",
+            "example": 1
+          },
+          "nombreCurso": {
+            "type": "string",
+            "description": "Nombre del curso",
+            "example": "Python Avanzado"
+          },
+          "fechaCreacion": {
+            "type": "string",
+            "format": "date-time",
+            "description": "Fecha y hora de creación del curso",
+            "example": "2026-03-25T10:30:00.000Z"
+          }
+        }
+      },
+      "ErrorResponse": {
+        "type": "object",
+        "properties": {
+          "success": {
+            "type": "boolean",
+            "example": false
+          },
+          "message": {
+            "type": "string",
+            "example": "Error"
+          }
+        }
+      }
+    }
+  },
+  "tags": [
+    {
+      "name": "Cursos",
+      "description": "Operaciones relacionadas con cursos"
+    }
+  ]
+}
