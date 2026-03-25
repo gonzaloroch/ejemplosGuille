@@ -1,7 +1,7 @@
 # API de Cursos - Node.js y MySQL
 
 ## Descripción
-API REST para crear y gestionar cursos usando Node.js, Express y MySQL.
+API REST para crear y gestionar cursos usando Node.js, Express, MySQL e **interactiva documentación OpenAPI con Swagger UI**.
 
 ## Requisitos Previos
 - Node.js (v14 o superior)
@@ -64,6 +64,20 @@ npm run dev
 
 El servidor estará disponible en: `http://localhost:3000`
 
+## 📚 Documentación OpenAPI (Swagger UI)
+
+Accede a la documentación interactiva OpenAPI en:
+```
+http://localhost:3000/api-docs
+```
+
+En Swagger UI podrás:
+- Ver toda la especificación OpenAPI
+- Leer la descripción de todos los endpoints
+- Ver esquemas de solicitud y respuesta
+- Probar los endpoints directamente desde la interfaz
+- Ver ejemplos de requests y responses
+
 ## Endpoints
 
 ### Crear un Curso (POST)
@@ -108,7 +122,9 @@ Content-Type: application/json
 }
 ```
 
-## Ejemplo de Uso con cURL
+## Ejemplos de Uso
+
+### Con cURL
 
 ```bash
 curl -X POST http://localhost:3000/api/cursos \
@@ -116,7 +132,7 @@ curl -X POST http://localhost:3000/api/cursos \
   -d '{"nombreCurso": "JavaScript Moderno"}'
 ```
 
-## Ejemplo de Uso con Postman
+### Con Postman
 
 1. Abre Postman
 2. Crea una nueva solicitud: **POST**
@@ -132,7 +148,7 @@ curl -X POST http://localhost:3000/api/cursos \
 ```
 6. Haz clic en **Send**
 
-## Ejemplo de Uso con JavaScript (fetch)
+### Con JavaScript (fetch)
 
 ```javascript
 fetch('http://localhost:3000/api/cursos', {
@@ -152,19 +168,51 @@ fetch('http://localhost:3000/api/cursos', {
   .catch(error => console.error('Error:', error));
 ```
 
+### Con Swagger UI
+
+1. Abre tu navegador en: `http://localhost:3000/api-docs`
+2. Localiza el endpoint `POST /api/cursos`
+3. Haz clic en "Try it out"
+4. En el campo de request body, ingresa:
+```json
+{
+  "nombreCurso": "Curso desde Swagger"
+}
+```
+5. Haz clic en "Execute"
+6. Verás la respuesta completa con el `idCurso` generado
+
 ## Estructura del Proyecto
 
 ```
 ejemplosGuille/
-├── server.js              # Punto de entrada de la aplicación
+├── server.js              # Punto de entrada, configuración de Express y Swagger
 ├── db.js                  # Configuración de conexión a MySQL
+├── swagger.js             # Configuración alternativa de Swagger (opcional)
 ├── package.json           # Dependencias del proyecto
 ├── .env                   # Variables de entorno
 ├── database.sql           # Script SQL para crear BD
 ├── routes/
-│   └── cursos.js          # Rutas y controladores de cursos
+│   └── cursos.js          # Rutas, controladores y documentación JSDoc Swagger
+├── test.js                # Script de prueba para Node.js
 └── README.md              # Este archivo
 ```
+
+## Especificación OpenAPI
+
+La API utiliza **OpenAPI 3.0.0** con documentación interactiva. Los detalles incluyen:
+
+- **Descripciones detalladas** de cada endpoint
+- **Esquemas de datos** (request/response)
+- **Códigos de estado** HTTP documentados
+- **Ejemplos de solicitudes y respuestas**
+- **Validaciones** de entrada
+- **Información de contacto** y licencia
+
+### Archivos de Documentación
+
+- `server.js` - Contiene la configuración OpenAPI principal
+- `routes/cursos.js` - Incluye anotaciones JSDoc @swagger para los endpoints
 
 ## Notas Importantes
 
@@ -172,11 +220,15 @@ ejemplosGuille/
 - La `fechaCreacion` se registra automáticamente con la fecha/hora actual
 - La API valida que `nombreCurso` no esté vacío
 - Se utiliza conexión con pool para mejor rendimiento
+- Swagger UI proporciona documentación interactiva y herramientas de prueba
 
 ## Troubleshooting
 
 ### Error: "Cannot find module 'express'"
 Ejecuta: `npm install`
+
+### Error: "Cannot find module 'swagger-ui-express'"
+Ejecuta: `npm install swagger-ui-express swagger-jsdoc`
 
 ### Error: "Access denied for user 'root'@'localhost'"
 Verifica las credenciales en el archivo `.env`
@@ -184,5 +236,10 @@ Verifica las credenciales en el archivo `.env`
 ### Error: "Unknown database 'cursos_db'"
 Asegúrate de ejecutar el archivo `database.sql` en MySQL
 
+### Swagger UI no funciona
+Asegúrate de que el servidor está corriendo y accede a:
+`http://localhost:3000/api-docs`
+
 ## Licencia
 Este proyecto es de uso educativo y libre.
+
