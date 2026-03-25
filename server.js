@@ -1,4 +1,6 @@
 const express = require('express');
+const path = require('path');
+const cors = require('cors');
 require('dotenv').config();
 const swaggerUi = require('swagger-ui-express');
 const swaggerJsdoc = require('swagger-jsdoc');
@@ -64,8 +66,10 @@ const swaggerOptions = {
 const swaggerSpec = swaggerJsdoc(swaggerOptions);
 
 // Middleware
+app.use(cors());
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
+app.use(express.static(path.join(__dirname, 'public')));
 
 // Swagger UI
 app.use('/api-docs', swaggerUi.serve, swaggerUi.setup(swaggerSpec, {
@@ -76,16 +80,9 @@ app.use('/api-docs', swaggerUi.serve, swaggerUi.setup(swaggerSpec, {
 // Rutas
 app.use('/api/cursos', cursosRouter);
 
-// Ruta de prueba
+// Ruta de inicio
 app.get('/', (req, res) => {
-  res.json({
-    message: 'API de Cursos',
-    version: '1.0.0',
-    documentation: 'http://localhost:' + PORT + '/api-docs',
-    endpoints: {
-      POST: '/api/cursos - Crear un nuevo curso'
-    }
-  });
+  res.sendFile(path.join(__dirname, 'public', 'index.html'));
 });
 
 // Manejador de errores 404
