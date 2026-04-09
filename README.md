@@ -12,7 +12,7 @@ API REST para crear y gestionar cursos usando Node.js, Express, MySQL e **intera
 
 ### 1. Clonar o descargar el proyecto
 ```bash
-cd ejemplosGuille
+cd cursosPosgrado
 ```
 
 ### 2. Instalar dependencias
