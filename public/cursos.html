@@ -1,0 +1,500 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Cursos - Academia Odontológica</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #e3f2fd 0%, #bbdefb 100%);
+            min-height: 100vh;
+            color: #333;
+        }
+
+        /* Header */
+        header {
+            background: linear-gradient(135deg, #0288d1 0%, #01579b 100%);
+            color: white;
+            padding: 20px;
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2);
+        }
+
+        .header-content {
+            max-width: 1200px;
+            margin: 0 auto;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        header h1 {
+            font-size: 24px;
+            font-weight: 600;
+        }
+
+        .nav-link {
+            color: white;
+            text-decoration: none;
+            margin-left: 20px;
+            transition: opacity 0.3s;
+        }
+
+        .nav-link:hover {
+            opacity: 0.8;
+        }
+
+        /* Main Container */
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 40px 20px;
+        }
+
+        h2 {
+            color: #0288d1;
+            margin-bottom: 30px;
+            font-size: 28px;
+        }
+
+        /* Button */
+        .btn-crear {
+            background: linear-gradient(135deg, #0288d1 0%, #01579b 100%);
+            color: white;
+            padding: 12px 30px;
+            border: none;
+            border-radius: 50px;
+            font-size: 16px;
+            cursor: pointer;
+            transition: all 0.3s;
+            margin-bottom: 30px;
+            font-weight: 600;
+        }
+
+        .btn-crear:hover {
+            transform: scale(1.05);
+            box-shadow: 0 6px 15px rgba(2, 136, 209, 0.4);
+        }
+
+        /* Cursos Lista */
+        .cursos-lista {
+            display: grid;
+            gap: 20px;
+        }
+
+        .curso-card {
+            background: white;
+            border-radius: 12px;
+            padding: 25px;
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
+            border-left: 5px solid #0288d1;
+            transition: all 0.3s ease;
+        }
+
+        .curso-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 8px 25px rgba(0, 0, 0, 0.15);
+        }
+
+        .curso-nombre {
+            font-size: 20px;
+            font-weight: 600;
+            color: #333;
+            margin-bottom: 10px;
+        }
+
+        .curso-id {
+            color: #999;
+            font-size: 12px;
+            margin-bottom: 10px;
+        }
+
+        .curso-fecha {
+            color: #0288d1;
+            font-size: 14px;
+            margin-bottom: 15px;
+        }
+
+        .curso-fechas-extra {
+            color: #455a64;
+            font-size: 13px;
+            margin-bottom: 15px;
+            line-height: 1.4;
+        }
+
+        .curso-acciones {
+            display: flex;
+            gap: 10px;
+        }
+
+        .btn-editar, .btn-eliminar {
+            padding: 8px 15px;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            font-size: 14px;
+            transition: all 0.3s;
+            font-weight: 500;
+        }
+
+        .btn-editar {
+            background: #ffc107;
+            color: #333;
+        }
+
+        .btn-editar:hover {
+            background: #e0a800;
+        }
+
+        .btn-eliminar {
+            background: #dc3545;
+            color: white;
+        }
+
+        .btn-eliminar:hover {
+            background: #c82333;
+        }
+
+        .curso-vacio {
+            text-align: center;
+            padding: 40px;
+            color: #999;
+        }
+
+        /* Modal */
+        .modal {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.5);
+            justify-content: center;
+            align-items: center;
+            z-index: 1000;
+        }
+
+        .modal.activo {
+            display: flex;
+        }
+
+        .modal-contenido {
+            background: white;
+            padding: 30px;
+            border-radius: 12px;
+            box-shadow: 0 10px 40px rgba(0, 0, 0, 0.3);
+            max-width: 400px;
+            width: 100%;
+        }
+
+        .modal-contenido h2 {
+            color: #0288d1;
+            margin-bottom: 20px;
+            font-size: 20px;
+        }
+
+        .form-grupo {
+            margin-bottom: 20px;
+        }
+
+        .form-grupo label {
+            display: block;
+            margin-bottom: 8px;
+            color: #333;
+            font-weight: 500;
+        }
+
+        .form-grupo input {
+            width: 100%;
+            padding: 10px;
+            border: 1px solid #ddd;
+            border-radius: 5px;
+            font-size: 14px;
+            font-family: inherit;
+        }
+
+        .form-grupo input:focus {
+            outline: none;
+            border-color: #0288d1;
+            box-shadow: 0 0 5px rgba(2, 136, 209, 0.3);
+        }
+
+        .botones-modal {
+            display: flex;
+            gap: 10px;
+            margin-top: 25px;
+        }
+
+        .btn-guardar, .btn-cancelar {
+            flex: 1;
+            padding: 10px;
+            border: none;
+            border-radius: 5px;
+            font-size: 14px;
+            cursor: pointer;
+            font-weight: 500;
+            transition: all 0.3s;
+        }
+
+        .btn-guardar {
+            background: #0288d1;
+            color: white;
+        }
+
+        .btn-guardar:hover {
+            background: #01579b;
+        }
+
+        .btn-cancelar {
+            background: #ddd;
+            color: #333;
+        }
+
+        .btn-cancelar:hover {
+            background: #ccc;
+        }
+
+        /* Responsive */
+        @media (max-width: 768px) {
+            .header-content {
+                flex-direction: column;
+                gap: 15px;
+            }
+
+            header h1 {
+                font-size: 20px;
+            }
+
+            .nav-link {
+                margin-left: 10px;
+                font-size: 14px;
+            }
+
+            h2 {
+                font-size: 22px;
+            }
+
+            .curso-acciones {
+                flex-direction: column;
+            }
+
+            .btn-editar, .btn-eliminar {
+                width: 100%;
+            }
+        }
+    </style>
+</head>
+<body>
+    <!-- Header -->
+    <header>
+        <div class="header-content">
+            <h1>🦷 Academia Odontológica</h1>
+            <nav>
+                <a href="/" class="nav-link">Inicio</a>
+                <a href="/cursos.html" class="nav-link">Cursos</a>
+                <a href="/inscripciones.html" class="nav-link">Inscripciones</a>
+                <a href="/admin.html" class="nav-link">Admin</a>
+            </nav>
+        </div>
+    </header>
+
+    <!-- Main Content -->
+    <div class="container">
+        <h2>Catálogo de Cursos</h2>
+        <button class="btn-crear" onclick="abrirModalCrear()">+ Crear Nuevo Curso</button>
+
+        <div class="cursos-lista" id="cursosList">
+            <div class="curso-vacio">Cargando cursos...</div>
+        </div>
+    </div>
+
+    <!-- Modal Crear/Editar -->
+    <div id="modalCurso" class="modal">
+        <div class="modal-contenido">
+            <h2 id="modalTitulo">Crear Nuevo Curso</h2>
+            <form id="formCurso">
+                <div class="form-grupo">
+                    <label for="nombreCurso">Nombre del Curso</label>
+                    <input type="text" id="nombreCurso" name="nombreCurso" required>
+                </div>
+                <div class="form-grupo">
+                    <label for="fechaDesde">Fecha de Inicio</label>
+                    <input type="date" id="fechaDesde" name="fechaDesde">
+                </div>
+                <div class="form-grupo">
+                    <label for="fechaHasta">Fecha de Finalización</label>
+                    <input type="date" id="fechaHasta" name="fechaHasta">
+                </div>
+                <div class="botones-modal">
+                    <button type="submit" class="btn-guardar">Guardar</button>
+                    <button type="button" class="btn-cancelar" onclick="cerrarModal()">Cancelar</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <script>
+        let cursos = [];
+        let cursoEditando = null;
+
+        function formatearFecha(fecha) {
+            if (!fecha) return 'No definida';
+            const fechaObj = new Date(fecha);
+            if (Number.isNaN(fechaObj.getTime())) return 'No definida';
+            return fechaObj.toLocaleDateString('es-ES');
+        }
+
+        // Cargar cursos al abrir la página
+        document.addEventListener('DOMContentLoaded', cargarCursos);
+
+        // Cargar cursos
+        async function cargarCursos() {
+            try {
+                const response = await fetch('/api/cursos');
+                const data = await response.json();
+
+                if (data.success) {
+                    cursos = data.cursos;
+                    mostrarCursos();
+                } else {
+                    document.getElementById('cursosList').innerHTML = 
+                        '<div class="curso-vacio">No hay cursos disponibles</div>';
+                }
+            } catch (error) {
+                console.error('Error:', error);
+                document.getElementById('cursosList').innerHTML = 
+                    '<div class="curso-vacio">Error al cargar los cursos</div>';
+            }
+        }
+
+        // Mostrar cursos
+        function mostrarCursos() {
+            const container = document.getElementById('cursosList');
+
+            if (cursos.length === 0) {
+                container.innerHTML = '<div class="curso-vacio">No hay cursos disponibles</div>';
+                return;
+            }
+
+            container.innerHTML = cursos.map(curso => `
+                <div class="curso-card">
+                    <div class="curso-nombre">${curso.nombreCurso}</div>
+                    <div class="curso-id">ID: ${curso.idCurso}</div>
+                    <div class="curso-fecha">Creado: ${formatearFecha(curso.fechaCreacion)}</div>
+                    <div class="curso-fechas-extra">
+                        Inicio: ${formatearFecha(curso.fechaDesde || curso.fechaInicio)}<br>
+                        Finalización: ${formatearFecha(curso.fechaHasta || curso.fechaFinalizacion)}
+                    </div>
+                    <div class="curso-acciones">
+                        <button class="btn-editar" onclick="abrirModalEditar(${curso.idCurso})">Editar</button>
+                        <button class="btn-eliminar" onclick="eliminarCurso(${curso.idCurso})">Eliminar</button>
+                    </div>
+                </div>
+            `).join('');
+        }
+
+        // Abrir modal crear
+        function abrirModalCrear() {
+            cursoEditando = null;
+            document.getElementById('modalTitulo').textContent = 'Crear Nuevo Curso';
+            document.getElementById('formCurso').reset();
+            document.getElementById('modalCurso').classList.add('activo');
+        }
+
+        // Abrir modal editar
+        function abrirModalEditar(id) {
+            const curso = cursos.find(c => c.idCurso === id);
+            if (curso) {
+                cursoEditando = id;
+                document.getElementById('modalTitulo').textContent = 'Editar Curso';
+                document.getElementById('nombreCurso').value = curso.nombreCurso;
+                document.getElementById('fechaDesde').value = (curso.fechaDesde || curso.fechaInicio) ? (curso.fechaDesde || curso.fechaInicio).substring(0, 10) : '';
+                document.getElementById('fechaHasta').value = (curso.fechaHasta || curso.fechaFinalizacion) ? (curso.fechaHasta || curso.fechaFinalizacion).substring(0, 10) : '';
+                document.getElementById('modalCurso').classList.add('activo');
+            }
+        }
+
+        // Cerrar modal
+        function cerrarModal() {
+            document.getElementById('modalCurso').classList.remove('activo');
+            document.getElementById('formCurso').reset();
+            cursoEditando = null;
+        }
+
+        // Guardar curso
+        document.getElementById('formCurso').addEventListener('submit', async (e) => {
+            e.preventDefault();
+
+            const nombreCurso = document.getElementById('nombreCurso').value;
+            const fechaDesde = document.getElementById('fechaDesde').value;
+            const fechaHasta = document.getElementById('fechaHasta').value;
+
+            if (fechaDesde && fechaHasta && new Date(fechaDesde) > new Date(fechaHasta)) {
+                alert('La fecha de inicio no puede ser mayor que la fecha de finalización');
+                return;
+            }
+
+            try {
+                if (cursoEditando) {
+                    // Editar
+                    const response = await fetch(`/api/cursos/${cursoEditando}`, {
+                        method: 'PUT',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({ nombreCurso, fechaDesde, fechaHasta })
+                    });
+
+                    if (response.ok) {
+                        cargarCursos();
+                        cerrarModal();
+                        alert('Curso actualizado exitosamente');
+                    }
+                } else {
+                    // Crear
+                    const response = await fetch('/api/cursos', {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({ nombreCurso, fechaDesde, fechaHasta })
+                    });
+
+                    if (response.ok) {
+                        cargarCursos();
+                        cerrarModal();
+                        alert('Curso creado exitosamente');
+                    }
+                }
+            } catch (error) {
+                console.error('Error:', error);
+                alert('Error al guardar el curso');
+            }
+        });
+
+        // Eliminar curso
+        async function eliminarCurso(id) {
+            if (!confirm('¿Estás seguro de que deseas eliminar este curso?')) return;
+
+            try {
+                const response = await fetch(`/api/cursos/${id}`, {
+                    method: 'DELETE'
+                });
+
+                if (response.ok) {
+                    cargarCursos();
+                    alert('Curso eliminado exitosamente');
+                } else {
+                    alert('Error al eliminar el curso');
+                }
+            } catch (error) {
+                console.error('Error:', error);
+                alert('Error al eliminar el curso');
+            }
+        }
+    </script>
+</body>
+</html>

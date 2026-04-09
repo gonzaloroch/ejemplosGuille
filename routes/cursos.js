@@ -83,9 +83,37 @@ const router = express.Router();
 router.get('/', async (req, res) => {
   try {
     const connection = await pool.getConnection();
-    const [cursos] = await connection.execute(
-      'SELECT idCurso, nombreCurso, fechaCreacion FROM cursos ORDER BY idCurso DESC'
-    );
+    let cursos;
+
+    try {
+      [cursos] = await connection.execute(
+        'SELECT idCurso, nombreCurso, fechaDesde, fechaHasta, fechaCreacion FROM curso ORDER BY idCurso DESC'
+      );
+    } catch (queryError) {
+      if (queryError.code !== 'ER_BAD_FIELD_ERROR') {
+        throw queryError;
+      }
+
+      try {
+        [cursos] = await connection.execute(
+          'SELECT idCurso, nombreCurso, fechaInicio, fechaFinalizacion, fechaCreacion FROM curso ORDER BY idCurso DESC'
+        );
+      } catch (legacyQueryError) {
+        if (legacyQueryError.code !== 'ER_BAD_FIELD_ERROR') {
+          throw legacyQueryError;
+        }
+
+        const [cursosSinFechas] = await connection.execute(
+          'SELECT idCurso, nombreCurso, fechaCreacion FROM curso ORDER BY idCurso DESC'
+        );
+        cursos = cursosSinFechas.map((curso) => ({
+          ...curso,
+          fechaDesde: null,
+          fechaHasta: null
+        }));
+      }
+    }
+
     connection.release();
 
     res.status(200).json({
@@ -178,10 +206,40 @@ router.get('/:idCurso', async (req, res) => {
     }
 
     const connection = await pool.getConnection();
-    const [curso] = await connection.execute(
-      'SELECT idCurso, nombreCurso, fechaCreacion FROM cursos WHERE idCurso = ?',
-      [idCurso]
-    );
+    let curso;
+
+    try {
+      [curso] = await connection.execute(
+        'SELECT idCurso, nombreCurso, fechaDesde, fechaHasta, fechaCreacion FROM curso WHERE idCurso = ?',
+        [idCurso]
+      );
+    } catch (queryError) {
+      if (queryError.code !== 'ER_BAD_FIELD_ERROR') {
+        throw queryError;
+      }
+
+      try {
+        [curso] = await connection.execute(
+          'SELECT idCurso, nombreCurso, fechaInicio, fechaFinalizacion, fechaCreacion FROM curso WHERE idCurso = ?',
+          [idCurso]
+        );
+      } catch (legacyQueryError) {
+        if (legacyQueryError.code !== 'ER_BAD_FIELD_ERROR') {
+          throw legacyQueryError;
+        }
+
+        const [cursoSinFechas] = await connection.execute(
+          'SELECT idCurso, nombreCurso, fechaCreacion FROM curso WHERE idCurso = ?',
+          [idCurso]
+        );
+        curso = cursoSinFechas.map((item) => ({
+          ...item,
+          fechaDesde: null,
+          fechaHasta: null
+        }));
+      }
+    }
+
     connection.release();
 
     if (curso.length === 0) {
@@ -303,7 +361,14 @@ router.get('/:idCurso', async (req, res) => {
 router.put('/:idCurso', async (req, res) => {
   try {
     const { idCurso } = req.params;
-    const { nombreCurso } = req.body;
+    const { nombreCurso, fechaDesde, fechaHasta, fechaInicio, fechaFinalizacion } = req.body;
+
+    const fechaDesdeNormalizada = typeof fechaDesde === 'string' && fechaDesde.trim() !== ''
+      ? fechaDesde
+      : (typeof fechaInicio === 'string' && fechaInicio.trim() !== '' ? fechaInicio : null);
+    const fechaHastaNormalizada = typeof fechaHasta === 'string' && fechaHasta.trim() !== ''
+      ? fechaHasta
+      : (typeof fechaFinalizacion === 'string' && fechaFinalizacion.trim() !== '' ? fechaFinalizacion : null);
 
     // Validar ID
     if (!idCurso || isNaN(idCurso)) {
@@ -321,11 +386,22 @@ router.put('/:idCurso', async (req, res) => {
       });
     }
 
+    if (
+      fechaDesdeNormalizada &&
+      fechaHastaNormalizada &&
+      new Date(fechaDesdeNormalizada) > new Date(fechaHastaNormalizada)
+    ) {
+      return res.status(400).json({
+        success: false,
+        message: 'La fecha de inicio no puede ser mayor que la fecha de finalización'
+      });
+    }
+
     const connection = await pool.getConnection();
 
     // Verificar que el curso existe
     const [cursoExistente] = await connection.execute(
-      'SELECT idCurso FROM cursos WHERE idCurso = ?',
+      'SELECT idCurso FROM curso WHERE idCurso = ?',
       [idCurso]
     );
 
@@ -338,16 +414,67 @@ router.put('/:idCurso', async (req, res) => {
     }
 
     // Actualizar el curso
-    await connection.execute(
-      'UPDATE cursos SET nombreCurso = ? WHERE idCurso = ?',
-      [nombreCurso, idCurso]
-    );
+    try {
+      await connection.execute(
+        'UPDATE curso SET nombreCurso = ?, fechaDesde = ?, fechaHasta = ? WHERE idCurso = ?',
+        [nombreCurso, fechaDesdeNormalizada, fechaHastaNormalizada, idCurso]
+      );
+    } catch (queryError) {
+      if (queryError.code !== 'ER_BAD_FIELD_ERROR') {
+        throw queryError;
+      }
+
+      try {
+        await connection.execute(
+          'UPDATE curso SET nombreCurso = ?, fechaInicio = ?, fechaFinalizacion = ? WHERE idCurso = ?',
+          [nombreCurso, fechaDesdeNormalizada, fechaHastaNormalizada, idCurso]
+        );
+      } catch (legacyQueryError) {
+        if (legacyQueryError.code !== 'ER_BAD_FIELD_ERROR') {
+          throw legacyQueryError;
+        }
+
+        await connection.execute(
+          'UPDATE curso SET nombreCurso = ? WHERE idCurso = ?',
+          [nombreCurso, idCurso]
+        );
+      }
+    }
 
     // Obtener el curso actualizado
-    const [cursoActualizado] = await connection.execute(
-      'SELECT idCurso, nombreCurso, fechaCreacion FROM cursos WHERE idCurso = ?',
-      [idCurso]
-    );
+    let cursoActualizado;
+
+    try {
+      [cursoActualizado] = await connection.execute(
+        'SELECT idCurso, nombreCurso, fechaDesde, fechaHasta, fechaCreacion FROM curso WHERE idCurso = ?',
+        [idCurso]
+      );
+    } catch (queryError) {
+      if (queryError.code !== 'ER_BAD_FIELD_ERROR') {
+        throw queryError;
+      }
+
+      try {
+        [cursoActualizado] = await connection.execute(
+          'SELECT idCurso, nombreCurso, fechaInicio, fechaFinalizacion, fechaCreacion FROM curso WHERE idCurso = ?',
+          [idCurso]
+        );
+      } catch (legacyQueryError) {
+        if (legacyQueryError.code !== 'ER_BAD_FIELD_ERROR') {
+          throw legacyQueryError;
+        }
+
+        const [cursoActualizadoSinFechas] = await connection.execute(
+          'SELECT idCurso, nombreCurso, fechaCreacion FROM curso WHERE idCurso = ?',
+          [idCurso]
+        );
+        cursoActualizado = cursoActualizadoSinFechas.map((item) => ({
+          ...item,
+          fechaDesde: null,
+          fechaHasta: null
+        }));
+      }
+    }
 
     connection.release();
 
@@ -447,7 +574,7 @@ router.delete('/:idCurso', async (req, res) => {
 
     // Verificar que el curso existe
     const [cursoExistente] = await connection.execute(
-      'SELECT idCurso FROM cursos WHERE idCurso = ?',
+      'SELECT idCurso FROM curso WHERE idCurso = ?',
       [idCurso]
     );
 
@@ -461,7 +588,7 @@ router.delete('/:idCurso', async (req, res) => {
 
     // Eliminar el curso
     await connection.execute(
-      'DELETE FROM cursos WHERE idCurso = ?',
+      'DELETE FROM curso WHERE idCurso = ?',
       [idCurso]
     );
 
@@ -591,7 +718,14 @@ router.delete('/:idCurso', async (req, res) => {
  */
 router.post('/', async (req, res) => {
   try {
-    const { nombreCurso } = req.body;
+    const { nombreCurso, fechaDesde, fechaHasta, fechaInicio, fechaFinalizacion } = req.body;
+
+    const fechaDesdeNormalizada = typeof fechaDesde === 'string' && fechaDesde.trim() !== ''
+      ? fechaDesde
+      : (typeof fechaInicio === 'string' && fechaInicio.trim() !== '' ? fechaInicio : null);
+    const fechaHastaNormalizada = typeof fechaHasta === 'string' && fechaHasta.trim() !== ''
+      ? fechaHasta
+      : (typeof fechaFinalizacion === 'string' && fechaFinalizacion.trim() !== '' ? fechaFinalizacion : null);
 
     // Validar que nombreCurso no esté vacío
     if (!nombreCurso || nombreCurso.trim() === '') {
@@ -601,12 +735,47 @@ router.post('/', async (req, res) => {
       });
     }
 
+    if (
+      fechaDesdeNormalizada &&
+      fechaHastaNormalizada &&
+      new Date(fechaDesdeNormalizada) > new Date(fechaHastaNormalizada)
+    ) {
+      return res.status(400).json({
+        success: false,
+        message: 'La fecha de inicio no puede ser mayor que la fecha de finalización'
+      });
+    }
+
     // Insertar en la base de datos
     const connection = await pool.getConnection();
-    const [result] = await connection.execute(
-      'INSERT INTO cursos (nombreCurso) VALUES (?)',
-      [nombreCurso]
-    );
+    let result;
+
+    try {
+      [result] = await connection.execute(
+        'INSERT INTO curso (nombreCurso, fechaDesde, fechaHasta) VALUES (?, ?, ?)',
+        [nombreCurso, fechaDesdeNormalizada, fechaHastaNormalizada]
+      );
+    } catch (queryError) {
+      if (queryError.code !== 'ER_BAD_FIELD_ERROR') {
+        throw queryError;
+      }
+
+      try {
+        [result] = await connection.execute(
+          'INSERT INTO curso (nombreCurso, fechaInicio, fechaFinalizacion) VALUES (?, ?, ?)',
+          [nombreCurso, fechaDesdeNormalizada, fechaHastaNormalizada]
+        );
+      } catch (legacyQueryError) {
+        if (legacyQueryError.code !== 'ER_BAD_FIELD_ERROR') {
+          throw legacyQueryError;
+        }
+
+        [result] = await connection.execute(
+          'INSERT INTO curso (nombreCurso) VALUES (?)',
+          [nombreCurso]
+        );
+      }
+    }
     
     connection.release();
 
@@ -615,7 +784,9 @@ router.post('/', async (req, res) => {
       success: true,
       message: 'Curso creado exitosamente',
       idCurso: result.insertId,
-      nombreCurso: nombreCurso
+      nombreCurso: nombreCurso,
+      fechaDesde: fechaDesdeNormalizada,
+      fechaHasta: fechaHastaNormalizada
     });
 
   } catch (error) {
